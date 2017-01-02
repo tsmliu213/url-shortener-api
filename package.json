@@ -1,0 +1,23 @@
+{
+  "name": "url-shortener",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tsmliu213/url-shortener-api.git"
+  },
+  "author": "Thomas Liu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tsmliu213/url-shortener-api/issues"
+  },
+  "homepage": "https://github.com/tsmliu213/url-shortener-api#readme",
+  "dependencies": {
+    "express": "^4.14.0"
+  }
+}
