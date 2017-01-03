@@ -18,24 +18,22 @@ app.get('/new/:url*', function(req, res) {
     else {
         mongodb.connect(dburl, function(err, db) {
             if(err) console.log(err);
-            var urls = db.collection('urls');
-            var shortenedUrl = urlExists(originalUrl, urls);
-            if(shortenedUrl) {
-                res.end(JSON.stringify({
-                    "original_url": originalUrl,
-                    "shortened_url:": shortenedUrl
-                }));
-            }
             else {
-                addUrl(generateShortUrl(), originalUrl, urls);
+                var urls = db.collection('urls');
+                shortenUrl(originalUrl, urls, db, req, res);
             }
-    
-            res.end(JSON.stringify({
-                "url": originalUrl
-            }));
         });
     }
-    
+});
+app.get('/:shortUrl', function(req, res) {
+    var shortUrl = req.params.shortUrl;
+    console.log(shortUrl);
+    mongodb.connect(dburl, function(err, db) {
+        if(err) console.log(err);
+        else {
+            getOriginalUrl(shortUrl, db, req, res);
+        }
+    });
 });
 app.listen(process.env.PORT || 8080);
 
@@ -43,23 +41,60 @@ function generateShortUrl() {
     return randomString.generate(5);
 }
 
-function urlExists(originalUrl, collection) {
-    // fix callback timing error
-    collection.findOne({url: originalUrl}, function(err, document){
+function absoluteUrl(shortUrl, req) {
+    return req.protocol + '://' + req.get('host') + '/' + shortUrl;
+}
+
+function getOriginalUrl(shortUrl, db, req, res) {
+    var urls = db.collection('urls');
+    urls.findOne({short_url: shortUrl}, function(err, document) {
         if(err) console.log(err);
         else {
-            return Boolean(document) ? document : false;
+            if(document) {
+                res.redirect(document.url);
+            }
+            else {
+                res.end(JSON.stringify({
+                    "error": "url doesn't exist in database."
+                }));
+            }
+            db.close();
         }
     });
 }
 
-function addUrl(shortUrl, originalUrl, collection) {
+function shortenUrl(originalUrl, collection, db, req, res) {
+    collection.findOne({url: originalUrl}, function(err, document){
+        if(err) console.log(err);
+        else {
+            if(document) {
+                res.end(JSON.stringify({
+                    "original_url": originalUrl,
+                    "shortened_url": absoluteUrl(document.short_url, req)
+                }));
+                console.log("short url exists");
+                db.close();
+            }
+            else {
+                addUrl(generateShortUrl(), originalUrl, collection, db, req, res);
+            }
+        }
+    });
+}
+
+function addUrl(shortUrl, originalUrl, collection, db, req, res) {
     collection.insert({
         url: originalUrl,
         short_url: shortUrl
-    },
-    function(err, result) {
-       if(err) console.log(err);
-       console.log("added result " + result);
+    }, function(err, result) {
+        if(err) console.log(err);
+        else {
+            console.log("added result " + result);
+            res.end(JSON.stringify({
+                "original_url": originalUrl,
+                "shortened_url:": shortUrl
+            }));
+            db.close();
+        }
     });
 }
