@@ -27,10 +27,10 @@ app.get('/new/:url*', function(req, res) {
 });
 app.get('/:shortUrl', function(req, res) {
     var shortUrl = req.params.shortUrl;
-    console.log(shortUrl);
     mongodb.connect(dburl, function(err, db) {
         if(err) console.log(err);
         else {
+            shortUrl = absoluteUrl(shortUrl, req);
             getOriginalUrl(shortUrl, db, req, res);
         }
     });
@@ -42,7 +42,7 @@ function generateShortUrl() {
 }
 
 function absoluteUrl(shortUrl, req) {
-    return req.protocol + '://' + req.get('host') + '/' + shortUrl;
+    return 'https://' + req.headers.host + '/' + shortUrl;
 }
 
 function getOriginalUrl(shortUrl, db, req, res) {
@@ -69,14 +69,14 @@ function shortenUrl(originalUrl, collection, db, req, res) {
         else {
             if(document) {
                 res.end(JSON.stringify({
-                    "original_url": originalUrl,
-                    "shortened_url": absoluteUrl(document.short_url, req)
+                    "url": originalUrl,
+                    "short_url": document.short_url
                 }));
-                console.log("short url exists");
                 db.close();
             }
             else {
-                addUrl(generateShortUrl(), originalUrl, collection, db, req, res);
+                var shortUrl = absoluteUrl(generateShortUrl(), req);
+                addUrl(shortUrl, originalUrl, collection, db, req, res);
             }
         }
     });
@@ -89,10 +89,9 @@ function addUrl(shortUrl, originalUrl, collection, db, req, res) {
     }, function(err, result) {
         if(err) console.log(err);
         else {
-            console.log("added result " + result);
             res.end(JSON.stringify({
-                "original_url": originalUrl,
-                "shortened_url:": shortUrl
+                "url": originalUrl,
+                "short_url:": shortUrl
             }));
             db.close();
         }
