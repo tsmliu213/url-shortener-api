@@ -18,6 +18,9 @@
   },
   "homepage": "https://github.com/tsmliu213/url-shortener-api#readme",
   "dependencies": {
-    "express": "^4.14.0"
+    "express": "^4.14.0",
+    "mongodb": "^2.2.16",
+    "randomstring": "^1.1.5",
+    "valid-url": "^1.0.9"
   }
 }
