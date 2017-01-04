@@ -3,7 +3,10 @@ var path = require('path');
 var validUrl = require('valid-url');
 var randomString = require('randomstring');
 var mongodb = require('mongodb').MongoClient;
-var dburl = 'mongodb://localhost:27017/urlshortenerdb';
+//var dburl = 'mongodb://localhost:27017/urlshortenerdb';
+var dburl = process.env.MONGOLAB_URI;
+
+
 
 var app = express();
 app.use('/', express.static(path.join(__dirname, '/static')));
